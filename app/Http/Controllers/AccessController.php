@@ -16,12 +16,12 @@ class AccessController extends Controller
         'password' => 'required|string',
       ]);
       if($validator->fails())
-        return response($validator->failed());
+        return response($validator->failed(), 401);
 
       if (Auth::attempt(array('email' => $request->input('email'), 'password' => $request->input('password')), true)){
         return response(Subscription::where('subscriber_id',Auth::id())->with('currency')->get());
       }
-      return response('Invalid Credentials');
+      return response('Invalid Credentials', 401);
     }
 
     public function logout()
