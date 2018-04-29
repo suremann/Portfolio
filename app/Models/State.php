@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Currency extends Model
+class State extends Model
 {
-  public $timestamps = false;
   /**
    * The connection name for the model.
    *
@@ -19,7 +18,7 @@ class Currency extends Model
    * @var array
    */
   protected $guarded = [
-    'id',
+      'id',
   ];
 
   /**
@@ -28,13 +27,16 @@ class Currency extends Model
    * @var array
    */
   protected $fillable = [
-    'symbol',
-    'name',
-    'price_usd',
+      'key',
+      'value',
   ];
-
-  public function subscriptions()
-  {
-    return $this->belongsTo('App\Models\Subscription', 'id', 'currency_id');
-  }
+  /**
+   * The attributes that should be hidden for arrays.
+   *
+   * @var array
+   */
+  protected $hidden = [
+      'created_at',
+      'updated_at',
+  ];
 }
