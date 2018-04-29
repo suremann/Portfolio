@@ -21,3 +21,6 @@ Homestead.json
 
 # Jetbrains project files
 .idea
+
+#zip files
+*.zip
