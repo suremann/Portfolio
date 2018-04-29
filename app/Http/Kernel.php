@@ -47,6 +47,7 @@ class Kernel extends HttpKernel
    */
   protected $routeMiddleware = [
       'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-      'auth.popup' => \App\Http\Middleware\Authenticate::class,
+      'auth.popup' => \App\Http\Middleware\Popup\Authenticate::class,
+      'popup.basic' => \App\Http\Middleware\Popup\Popup::class,
   ];
 }
