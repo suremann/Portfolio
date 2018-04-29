@@ -13,14 +13,22 @@
 
 //Landing page
 Route::get('/', 'ViewController@portfolio');
-Route::get('/info', 'ViewController@info');
 
 //Routes for the Crypto Asset Monitor popup
-Route::group(['prefix'=>'popup'], function(){
+Route::group(['prefix'=>'popup', 'middleware'=>'popup.basic'], function(){
   //Routes that do not go through additional middleware
   Route::get('/', 'ViewController@popup'); //Home page
   Route::post('/login', 'AccessController@login'); //Login
   Route::post('/subscriber', 'SubscriberController@store'); //Sign up
+
+  Route::get('/info', 'ViewController@info');
+
+  Route::group(['prefix'=>'update'], function(){
+    Route::get('/cryptocompare', 'PollController@cryptoCompare');
+    Route::get('/refresh', 'PollController@refresh');
+    Route::get('/worldcoinindex', 'PollController@worldCoinIndex');
+  });
+
   //Routes that MUST go through popup auth middleware
   Route::group(['middleware'=>'auth.popup'], function(){
     Route::resource('currency', 'CurrencyController');
