@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Http\Middleware\Popup;
 use Illuminate\Http\Request;
 use Closure;
 use Auth;
