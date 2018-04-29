@@ -78,6 +78,21 @@ return [
             'prefix' => '',
         ],
 
+        'laravel' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_LARAVEL', '127.0.0.1'),
+            'port' => env('DB_PORT_LARAVEL', '3306'),
+            'database' => env('DB_DATABASE_LARAVEL', 'forge'),
+            'username' => env('DB_USERNAME_LARAVEL', 'forge'),
+            'password' => env('DB_PASSWORD_LARAVEL', ''),
+            'unix_socket' => env('DB_SOCKET_LARAVEL', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'popup' => [
             'driver' => 'mysql',
             'host' => env('DB_HOST_POPUP', '127.0.0.1'),
@@ -86,6 +101,21 @@ return [
             'username' => env('DB_USERNAME_POPUP', 'forge'),
             'password' => env('DB_PASSWORD_POPUP', ''),
             'unix_socket' => env('DB_SOCKET_POPUP', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
+        'wordpress' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_WORDPRESS', '127.0.0.1'),
+            'port' => env('DB_PORT_WORDPRESS', '3306'),
+            'database' => env('DB_DATABASE_WORDPRESS', 'forge'),
+            'username' => env('DB_USERNAME_WORDPRESS', 'forge'),
+            'password' => env('DB_PASSWORD_WORDPRESS', ''),
+            'unix_socket' => env('DB_SOCKET_WORDPRESS', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
