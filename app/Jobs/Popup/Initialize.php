@@ -34,6 +34,7 @@ class Initialize implements ShouldQueue
           new Polling\CryptoCompare(),
           new Polling\WorldCoinIndex(),
       ]));
+
       $state = State::where('key','queue_state')->first();
       $state->value = 'initialized';
       $state->save();
