@@ -19,8 +19,10 @@ class WorldCoinIndex implements ShouldQueue
    *
    * @return void
    */
-  public function __construct(State $state)
+  public function __construct(State $state=null)
   {
+    if($state == null)
+      $state = State::firstOrNew(['key' => 'wci_count']);
     if($state->value == null){
       $state->value = 0;
       $state->save();
@@ -37,9 +39,7 @@ class WorldCoinIndex implements ShouldQueue
   {
     $this->state->value++;
     $this->state->save();
-
     //Poll from WorldCoinIndex
-
     $wcindex = new WorldCoinIndex($this->state);
     //Delay for 5 minutes.
     dispatch($wcindex)->delay(now()->addMinutes(5));

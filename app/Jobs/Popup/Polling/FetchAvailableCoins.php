@@ -19,8 +19,10 @@ class FetchAvailableCoins implements ShouldQueue
    *
    * @return void
    */
-  public function __construct(State $state)
+  public function __construct(State $state=null)
   {
+    if($state == null)
+      $state = State::firstOrNew(['key' => 'fac_count']);
     if($state->value == null){
       $state->value = 0;
       $state->save();
@@ -37,7 +39,6 @@ class FetchAvailableCoins implements ShouldQueue
   {
     $this->state->value++;
     $this->state->save();
-
     $fetch = new FetchAvailableCoins($this->state);
     //Delay for 24 hours.
     dispatch($fetch)->delay(now()->addDay());

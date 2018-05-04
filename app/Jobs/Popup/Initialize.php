@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Models\State;
 
+
 class Initialize implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -20,7 +21,6 @@ class Initialize implements ShouldQueue
      */
     public function __construct()
     {
-        //
     }
 
     /**
@@ -30,15 +30,11 @@ class Initialize implements ShouldQueue
      */
     public function handle()
     {
-      $fetch = new Polling\FetchAvailableCoins(State::where('key', 'fac_count')->first());
-      $ccompare = new Polling\CryptoCompare(State::where('key', 'cc_count')->first());
-      $wcindex = new Polling\WorldCoinIndex(State::where('key', 'wci_count')->first());
-
-
-      dispatch($fetch);
-      dispatch($ccompare)->delay(now()->addSeconds(15)); //Delay for 10 seconds.
-      dispatch($wcindex)->delay(now()->addSeconds(30)); //Delay for 10 seconds.
-      $state = State::where('key','queue_ready')->first();
+      dispatch((new Polling\FetchAvailableCoins())->chain([
+          new Polling\CryptoCompare(),
+          new Polling\WorldCoinIndex(),
+      ]));
+      $state = State::where('key','queue_state')->first();
       $state->value = 'initialized';
       $state->save();
     }
