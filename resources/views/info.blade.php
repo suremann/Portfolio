@@ -1,5 +1,5 @@
 <pre>
   <?php
-    var_dump(App\Popup\ValueHolder::instance());
+    phpinfo();
   ?>
 </pre>

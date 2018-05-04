@@ -537,7 +537,7 @@ class wpdb {
 	 * @since 3.9.0
 	 * @var bool
 	 */
-	private $use_mysqli = false;
+	private $use_mysqli = true;
 
 	/**
 	 * Whether we've managed to successfully connect at some point
@@ -570,14 +570,21 @@ class wpdb {
 		if ( WP_DEBUG && WP_DEBUG_DISPLAY )
 			$this->show_errors();
 
-		// Use ext/mysqli if it exists unless WP_USE_EXT_MYSQL is defined as true
-		if ( function_exists( 'mysqli_connect' ) ) {
-			$this->use_mysqli = true;
-
-			if ( defined( 'WP_USE_EXT_MYSQL' ) ) {
-				$this->use_mysqli = ! WP_USE_EXT_MYSQL;
-			}
-		}
+    /* Use ext/mysqli if it exists and:
+     *  - WP_USE_EXT_MYSQL is defined as false, or
+     *  - We are a development version of WordPress, or
+     *  - We are running PHP 5.5 or greater, or
+     *  - ext/mysql is not loaded.
+     */
+    if ( function_exists( 'mysqli_connect' ) ) {
+      if ( defined( 'WP_USE_EXT_MYSQL' ) ) {
+        $this->use_mysqli = ! WP_USE_EXT_MYSQL;
+      } elseif ( version_compare( phpversion(), '5.5', '>=' ) || ! function_exists( 'mysql_connect' ) ) {
+        $this->use_mysqli = true;
+      } elseif ( false !== strpos( $GLOBALS['wp_version'], '-' ) ) {
+        $this->use_mysqli = true;
+      }
+    }
 
 		$this->dbuser = $dbuser;
 		$this->dbpassword = $dbpassword;

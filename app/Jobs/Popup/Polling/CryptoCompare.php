@@ -20,8 +20,10 @@ class CryptoCompare implements ShouldQueue
    *
    * @return void
    */
-  public function __construct(State $state)
+  public function __construct(State $state=null)
   {
+    if($state == null)
+      $state = State::firstOrNew(['key' => 'cc_count']);
     if($state->value == null){
       $state->value = 0;
       $state->save();
@@ -39,7 +41,6 @@ class CryptoCompare implements ShouldQueue
   {
     $this->state->value++;
     $this->state->save();
-
     $ccompare = new CryptoCompare($this->state);
     //delay for 10 seconds.
     dispatch($ccompare)->delay(now()->addSeconds(30));
