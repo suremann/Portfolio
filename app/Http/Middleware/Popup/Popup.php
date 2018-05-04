@@ -6,8 +6,6 @@ use Closure;
 use App;
 use App\Models\State;
 use App\Jobs\Popup\Initialize;
-use App\Utils\MyQueue;
-use Illuminate\Support\Facades\Artisan;
 
 
 class Popup
@@ -26,13 +24,7 @@ class Popup
     if($state->value == null){
       $state->value = 'initializing';
       $state->save();
-//      exec(getcwd() . '/bash/laravel/start_queue.sh >> null &');
-
-      //dispatch(new Initialize());
-      MyQueue::dispatchJob(new Initialize());
-      Artisan::call('queue:work', [
-          '--once' => true,
-      ]);
+      dispatch(new Initialize());
     }
     return $next($request);
   }
