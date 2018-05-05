@@ -30,7 +30,8 @@ class Currency extends Model
   protected $fillable = [
     'symbol',
     'name',
-    'price_usd',
+    'price_usd_cc',
+    'price_usd_wci',
   ];
 
   public function subscriptions()
