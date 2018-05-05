@@ -2,33 +2,28 @@
 
 namespace App\Jobs\Popup\Polling;
 
+use App\Utils\CurrencyUtils;
+use App\Utils\StateUtils;
+use App\Utils\StringUtils;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use App\Models\State;
 use App\Models\Currency;
 
 class FetchAvailableCoins implements ShouldQueue
 {
   use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-  private $state, $url;
+  private $url;
   /**
    * Create a new job instance.
    *
    * @return void
    */
-  public function __construct(State $state=null)
+  public function __construct()
   {
-    if($state == null)
-      $state = State::firstOrNew(['key' => 'fac_count']);
-    if($state->value == null){
-      $state->value = 0;
-      $state->save();
-    }
-    $this->state = $state;
     $this->url = "https://min-api.cryptocompare.com/data/all/coinlist";
   }
 
@@ -40,21 +35,38 @@ class FetchAvailableCoins implements ShouldQueue
   public function handle()
   {
     //Initialize symbol_index -> 0
-    $state = State::firstOrNew(['key' => 'symbol_index']);
-    $state->value = 0;
-    $state->save();
-
-    $currecy = Currency::all();
-    //Get all coins, break up symbols into proper sized chunks, add new coins to db
+    StateUtils::updateOrCreate('symbol_index', 0);
+    //Get the current symbols as an array. Flip the indices with values so we can access the array by symbol.
+    $current = array_flip(Currency::pluck('symbol')->all());
+    //Send GET request to cryptocompare.com api to get all their coins.
     $client = new \GuzzleHttp\Client();
-    $res = $client->get("https://min-api.cryptocompare.com/data/all/coinlist");
-    $coins = $res->getBody()->getContents();
+    $cc_coins = $client->get($this->url);
+    //Decode the body of the response as a JSON object.
+    $cc_coins = json_decode($cc_coins->getBody(), true);
+    //If the request was successful, parse the data.
+    if($cc_coins['Response'] === 'Success'){
+      StateUtils::updateOrCreate('cc_base_image_url', $cc_coins['BaseImageUrl']);
+      StateUtils::updateOrCreate('cc_base_link_url', $cc_coins['BaseLinkUrl']);
 
+      $symbols_chunk = '';
+      $chunk_length = 299; //Characters
+      $chunk_index = 0;
 
-
-    $this->state->value++;
-    $this->state->save();
-    $fetch = new FetchAvailableCoins($this->state);
+      foreach($cc_coins['Data'] as $coin){
+        $symbol = strtoupper($coin['Symbol']);
+        //Create an entry in the DB for the coin if its not in the current array
+        CurrencyUtils::createIfNotInArray($current, $symbol, $coin['Name']);
+        //If adding this symbol to the chunk makes the chunk too big. Save it and create a new one with the new symbol.
+        if(strlen($symbols_chunk) + strlen($symbol) >= $chunk_length){
+          StateUtils::updateOrCreate('symbol_chunk_' . $chunk_index, $symbols_chunk);
+          $symbols_chunk = '';
+          $chunk_index++;
+        }
+        $symbols_chunk = StringUtils::appendWithDelimiter($symbols_chunk, $coin['Symbol']);
+      }
+      StateUtils::updateOrCreate('symbol_chunk_count', $chunk_index);
+    }
+    $fetch = new FetchAvailableCoins();
     //Delay for 24 hours.
     dispatch($fetch)->delay(now()->addDay());
   }
