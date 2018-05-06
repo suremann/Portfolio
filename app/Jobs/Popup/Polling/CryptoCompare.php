@@ -51,10 +51,10 @@ class CryptoCompare implements ShouldQueue
     //Decode the body of the response as a JSON object.
     $cc_prices = json_decode($cc_prices->getBody(), true);
 
-    CurrencyUtils::handleBatchCC($cc_prices, explode(',', $symbol_chunk));
+    CurrencyUtils::handleBatchCCUpdate($cc_prices, explode(',', $symbol_chunk));
 
     $ccompare = new CryptoCompare();
     //delay for 15 seconds.
-    dispatch($ccompare)->delay(now()->addSeconds(20));
+    dispatch($ccompare)->delay(now()->addSeconds(15));
   }
 }

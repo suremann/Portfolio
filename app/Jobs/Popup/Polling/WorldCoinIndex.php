@@ -32,7 +32,6 @@ class WorldCoinIndex implements ShouldQueue
    */
   public function handle()
   {
-    $current = array_flip(Currency::pluck('symbol')->all());
     //Send GET request to cryptocompare.com api to get coin prices.
     $client = new \GuzzleHttp\Client();
     $wci_prices = $client->get($this->url);
@@ -41,7 +40,7 @@ class WorldCoinIndex implements ShouldQueue
     //Must do a RAW SQL query. Need to do a batch INSERT / UPDATE
     if(isset($wci_prices['Markets'][0])) {
       //Pass the USD market values and the current coin symbols.
-      CurrencyUtils::handleBatchWCI($wci_prices['Markets'][0], $current);
+      CurrencyUtils::handleBatchWCI($wci_prices['Markets'][0]);
     }
     //Poll from WorldCoinIndex
     $wcindex = new WorldCoinIndex();
