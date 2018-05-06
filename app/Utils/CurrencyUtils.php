@@ -7,11 +7,21 @@
  */
 
 namespace App\Utils;
+use App\Events\PriceUpdate;
 use App\Models\Currency;
 use DB;
 
 class CurrencyUtils
 {
+  public static function fixArray($array){
+    $fixed = array();
+    foreach($array as $coin){
+      $symbol = (get_class($coin) === "stdClass") ? $coin->symbol : $coin['symbol'];
+      $fixed[$symbol] = $coin;
+    }
+    return $fixed;
+  }
+
   public static function createIfNotInArray($array, $symbol, $name, $fill=array()){
     $fill['name'] = $name;
     $fill['symbol'] = $symbol;
@@ -27,24 +37,93 @@ class CurrencyUtils
     }
   }
 
-  public static function handleBatchCC($batch, $current){
-    $update_values = array();
-    $update = null;
-
-    foreach ($batch as $symbol => $price) {
-      $symbol = strtoupper($symbol);
-      if(isset($current[$symbol])){ //UPDATE
-        $update = StringUtils::appendWithDelimiter($update, ' WHEN symbol = ? THEN ? ', '');
-        array_push($update_values, $symbol, $price);
-      }
+  public static function handleBatchCCUpdate($batch, $symbols){
+    $select = null;
+    foreach($symbols as $symbol){
+      $select = StringUtils::appendWithDelimiter($select, 'symbol = "' . $symbol . '"', ' OR ');
     }
-    if($update != null){
-      $update = 'UPDATE popup.currencies SET price_usd_cc = CASE ' . $update . ' ELSE price_usd_cc END;';
-      DB::statement($update, $update_values);
+    if($select != null){
+      $current = DB::table('popup.currencies')->select('symbol', 'price_usd_cc', 'price_usd_wci')->whereRaw($select)->get();
+      $current = CurrencyUtils::fixArray($current);
+
+      $subscribed = CurrencyUtils::fixArray(DB::table('popup.subscriptions')->join('popup.currencies', 'popup.subscriptions.currency_id', '=', 'popup.currencies.id')->select('symbol')->get());
+
+      $update_values = array();
+      $update = null;
+
+      foreach ($batch as $symbol => $price) {
+        $symbol = strtoupper($symbol);
+        if(isset($current[$symbol])){ //UPDATE
+          $inDB = $current[$symbol];
+          if($inDB->price_usd_cc <>  $price) {
+            $update = StringUtils::appendWithDelimiter($update, ' WHEN symbol = "$symbol" THEN "$price" ', '');
+            $inDB->price_usd_cc = $price;
+            CurrencyUtils::broadcastUpdate($inDB, $subscribed);
+          }
+        }
+      }
+      if($update != null){
+        $update = 'UPDATE popup.currencies SET price_usd_cc = CASE ' . $update . ' ELSE price_usd_cc END;';
+        DB::statement($update);
+      }
     }
   }
 
-  public static function handleBatchWCI($batch, $current){
+  public static function broadcastUpdate($coin, $subscribed=null){
+    if($subscribed == null)
+      $subscribed = CurrencyUtils::fixArray(DB::table('popup.subscriptions')->join('popup.currencies', 'popup.subscriptions.currency_id', '=', 'popup.currencies.id')->select('symbol')->get());
+    if(isset($subscribed[$coin->symbol])){
+      $options = array(
+          'cluster' => 'us2',
+          'encrypted' => true
+      );
+      $pusher = new Pusher\Pusher(
+          '97e0bc3b7c60a3b97196',
+          '77661ddc66d6484d849d',
+          '504291',
+          $options
+      );
+      $pusher->trigger('price-change', $coin->symbol, $coin);
+    }
+  }
+
+  public static function handleBatchCCInsert($batch){
+    $current = array_flip(Currency::pluck('symbol')->all());
+    $symbols_chunk = '';
+    $chunk_length = 299; //Characters
+    $chunk_index = 0;
+
+    $insert_values = array();
+    $insert = null;
+
+    foreach($batch as $coin){
+      $symbol = strtoupper($coin['Symbol']);
+      //Create an entry in the DB for the coin if its not in the current array
+      if(!isset($current[$symbol])){
+        $insert = StringUtils::appendWithDelimiter($insert, '(?, ?)');
+        array_push($insert_values, $symbol, $coin['Name']);
+      }
+      //If adding this symbol to the chunk makes the chunk too big. Save it and create a new one with the new symbol.
+      if(strlen($symbols_chunk) + strlen($symbol) >= $chunk_length){
+        StateUtils::updateOrCreate('symbol_chunk_' . $chunk_index, $symbols_chunk);
+        $symbols_chunk = '';
+        $chunk_index++;
+      }
+      $symbols_chunk = StringUtils::appendWithDelimiter($symbols_chunk, $coin['Symbol']);
+    }
+    if($insert != null){
+      $insert = 'INSERT INTO popup.currencies (symbol, name) VALUES ' . $insert;
+      DB::statement($insert, $insert_values);
+    }
+    StateUtils::updateOrCreate('symbol_chunk_count', $chunk_index);
+  }
+
+  public static function handleBatchWCI($batch){
+    $current = DB::table('popup.currencies')->select('symbol', 'price_usd_cc', 'price_usd_wci')->get();
+    $current = CurrencyUtils::fixArray($current);
+
+    $subscribed = CurrencyUtils::fixArray(DB::table('popup.subscriptions')->join('popup.currencies', 'popup.subscriptions.currency_id', '=', 'popup.currencies.id')->select('symbol')->get());
+
     $insert_values = array();
     $update_values = array();
     $insert = null;
@@ -53,8 +132,13 @@ class CurrencyUtils
     foreach ($batch as $coin) {
       $symbol = strtoupper(substr($coin['Label'], 0, -4));
       if(isset($current[$symbol])){ //UPDATE
-        $update = StringUtils::appendWithDelimiter($update, ' WHEN symbol = ? THEN ? ', '');
-        array_push($update_values, $symbol, $coin['Price']);
+        $inDB = $current[$symbol];
+        if($inDB->price_usd_cc <>  $coin['Price']){
+          $inDB->price_usd_cc = $coin['Price'];
+          CurrencyUtils::broadcastUpdate($inDB, $subscribed);
+          $update = StringUtils::appendWithDelimiter($update, ' WHEN symbol = ? THEN ? ', '');
+          array_push($update_values, $symbol, $coin['Price']);
+        }
       }else{ //INSERT
         $insert = StringUtils::appendWithDelimiter($insert, '(?, ?, ?)');
         array_push($insert_values, $symbol, $coin['Name'], $coin['Price']);

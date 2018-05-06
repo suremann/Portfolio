@@ -12,7 +12,7 @@ class StringUtils
 {
   public static function appendWithDelimiter($base, $add, $delimiter=','){
     if($base == null)
-      $base = '';
+      return $add;
     if($base !== '')
       $base .= $delimiter;
     return $base . $add;
