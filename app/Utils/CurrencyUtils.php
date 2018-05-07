@@ -43,47 +43,54 @@ class CurrencyUtils
       $select = StringUtils::appendWithDelimiter($select, 'symbol = "' . $symbol . '"', ' OR ');
     }
     if($select != null){
-      $current = DB::table('popup.currencies')->select('symbol', 'price_usd_cc', 'price_usd_wci')->whereRaw($select)->get();
-      $current = CurrencyUtils::fixArray($current);
+      $current = CurrencyUtils::fixArray(
+          DB::table('popup.currencies')
+              ->select('symbol', 'price_usd_cc', 'price_usd_wci')
+              ->whereRaw($select)
+              ->get()
+      );
 
-      $subscribed = CurrencyUtils::fixArray(DB::table('popup.subscriptions')->join('popup.currencies', 'popup.subscriptions.currency_id', '=', 'popup.currencies.id')->select('symbol')->get());
+      $subscribed = CurrencyUtils::fixArray(
+          DB::table('popup.subscriptions')
+              ->join('popup.currencies', 'popup.subscriptions.currency_id', '=', 'popup.currencies.id')
+              ->select('symbol')
+              ->get()
+      );
 
-      $update_values = array();
       $update = null;
+      $update_values = array();
 
-      foreach ($batch as $symbol => $price) {
+      foreach ($batch as $symbol => $data) {
         $symbol = strtoupper($symbol);
         if(isset($current[$symbol])){ //UPDATE
           $inDB = $current[$symbol];
+          $price = $data['USD'];
           if($inDB->price_usd_cc <>  $price) {
-            $update = StringUtils::appendWithDelimiter($update, ' WHEN symbol = "$symbol" THEN "$price" ', '');
+            $update = StringUtils::appendWithDelimiter($update, ' WHEN symbol = ? THEN ? ', '');
             $inDB->price_usd_cc = $price;
+            array_push($update_values, $symbol, $price);
             CurrencyUtils::broadcastUpdate($inDB, $subscribed);
           }
         }
       }
       if($update != null){
         $update = 'UPDATE popup.currencies SET price_usd_cc = CASE ' . $update . ' ELSE price_usd_cc END;';
-        DB::statement($update);
+        DB::statement($update, $update_values);
       }
     }
   }
 
   public static function broadcastUpdate($coin, $subscribed=null){
-    if($subscribed == null)
-      $subscribed = CurrencyUtils::fixArray(DB::table('popup.subscriptions')->join('popup.currencies', 'popup.subscriptions.currency_id', '=', 'popup.currencies.id')->select('symbol')->get());
+    if($subscribed == null) {
+      $subscribed = CurrencyUtils::fixArray(
+          DB::table('popup.subscriptions')
+              ->join('popup.currencies', 'popup.subscriptions.currency_id', '=', 'popup.currencies.id')
+              ->select('symbol')
+              ->get()
+      );
+    }
     if(isset($subscribed[$coin->symbol])){
-      $options = array(
-          'cluster' => 'us2',
-          'encrypted' => true
-      );
-      $pusher = new Pusher\Pusher(
-          '97e0bc3b7c60a3b97196',
-          '77661ddc66d6484d849d',
-          '504291',
-          $options
-      );
-      $pusher->trigger('price-change', $coin->symbol, $coin);
+      event(new PriceUpdate($coin));
     }
   }
 
