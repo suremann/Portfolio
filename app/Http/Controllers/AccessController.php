@@ -19,7 +19,7 @@ class AccessController extends Controller
         return response($validator->failed(), 401);
 
       if (Auth::attempt(array('email' => $request->input('email'), 'password' => $request->input('password')), true)){
-        return redirect()->route('popup/subscription');
+        return redirect('popup/subscription');
       }
       return response('Invalid Credentials', 401);
     }
