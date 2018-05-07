@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use App\Models\Currency;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -31,7 +30,9 @@ class PriceUpdate implements ShouldBroadcast
    */
   public function broadcastOn()
   {
-    return new Channel('coin.' . $this->coin->symbol);
+    //* is not a valid character in channel names.
+    $symbol = preg_replace('/\*/', 'ALT', $this->coin->symbol);
+    return new Channel('coin.' . $symbol);
   }
 
   /**
