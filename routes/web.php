@@ -1,6 +1,15 @@
 <?php
 
-Route::get('/test/{symbol}','SubscriptionController@show');
+Route::get('/test', function(){
+  $coin = new stdClass();
+  $coin->symbol = 'BTC';
+  $coin->price_usd_cc = 123;
+  $coin->price_usd_wci = 456;
+
+  event(new \App\Events\PriceUpdate($coin));
+
+  \App\Utils\DumpUtil::prettyVarDump($coin);
+});
 /*
 |------------------------------------------------------------------7--------
 | Web Routes
