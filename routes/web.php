@@ -21,6 +21,10 @@ Route::get('/test', function(){
 |
 */
 //Routes for the Crypto Asset Monitor popup
+Route::get('/portfolio', function(){
+  return redirect('/public/portfolio');
+});
+
 Route::group(['prefix'=>'popup', 'middleware'=>'popup.basic'], function(){
   //Routes that do not go through additional middleware
   Route::get('/', 'ViewController@popup'); //Home page
