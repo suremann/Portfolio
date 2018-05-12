@@ -45,6 +45,6 @@ class WorldCoinIndex implements ShouldQueue
     //Poll from WorldCoinIndex
     $wcindex = new WorldCoinIndex();
     //Delay for 5 minutes.
-    dispatch($wcindex)->delay(now()->addMinutes(5));
+    dispatch($wcindex)->delay(now()->addMinutes(1));
   }
 }
