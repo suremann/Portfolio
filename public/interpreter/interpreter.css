@@ -34,7 +34,7 @@
 }
 
 .terminal .input input {
-  width: 90%;
+  width: calc(100% - 25px);
   border: none;
   outline: none;
 }
