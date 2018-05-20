@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ "$1" = "upload" ]
+then
+  $src="./*"
+  $dst="/var/www/html/"
+  
+  if [ 
+      
+  
+  scp -i E:/AWS/portfolio-ec2.pem $2

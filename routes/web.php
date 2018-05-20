@@ -20,11 +20,11 @@ Route::get('/test', function(){
 | contains the "web" middleware group. Now create something great!
 |
 */
-//Routes for the Crypto Asset Monitor popup
 Route::get('/portfolio', function(){
   return redirect('/public/portfolio');
 });
 
+//Routes for the Crypto Asset Monitor popup
 Route::group(['prefix'=>'popup', 'middleware'=>'popup.basic'], function(){
   //Routes that do not go through additional middleware
   Route::get('/', 'ViewController@popup'); //Home page
