@@ -7,7 +7,7 @@
 
 .terminal .input,
 .terminal .output {
-  width: 95%;
+  width: 100%;
 }
 
 .terminal .input *{
@@ -38,7 +38,7 @@
 }
 
 .terminal .input input {
-  width: calc(100% - 30px);
+  width: calc(100% - 50px);
   border: none;
   outline: none;
 }
