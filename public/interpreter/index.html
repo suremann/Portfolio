@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta charset="UTF-8">
+  <link href="interpreter.css" rel="stylesheet">
+  <title>Interpreter</title>
+</head>
+<body>
+<div class="container">
+  <div class="terminal">
+    <div class="output" id="terminal-output">
+
+    </div>
+    <div class="input">
+      <label for="terminal-input">>></label>
+      <input type="text" id="terminal-input">
+    </div>
+  </div>
+  <div class="help">
+    <div class="syntax">
+      <ul>
+        <h3>SYNTAX</h3>
+        <li>Number: (? {num} )?</li>
+        <li>Factorial: ({num|var}!)</li>
+        <li>Permutations: (p\i {expression} {expression}) => (P n k)</li>
+        <li>Combinations: (c\i {expression} {expression}) => (C n k)</li>
+        <li>Define a variable: (define\i {identifier} {expression})</li>
+        <li>See all stored variables: (? __env\i__ )?</li>
+        <li>Reset environment and terminal: (? __reset\i__ )?</li>
+        <li>General arithmetic: (? {expression} {[+-*/] {expression}}* )?</li>
+      </ul>
+    </div>
+    <div class="examples">
+      <ul>
+        <h3>Examples</h3>
+        <li>Number: (4), 4</li>
+        <li>Factorial: (4!), (x!), ((1 + 2)!)</li>
+        <li>Permutations: (P 7 3), (P (A) (1 + 2))</li>
+        <li>Combinations: (C 7 3), (C (4!) (A))</li>
+        <li>Define a variable: (define A 23), (DEFINE B (C (4!) (1 + 2)))</li>
+        <li>See all stored variables: __env__</li>
+        <li>Reset environment and terminal: (__reset__)</li>
+        <li>General arithmetic: (1 + 2) * (4!) + (C (1 + 3) (A))</li>
+      </ul>
+    </div>
+    <div class="overview">
+      <p>
+        A character followed by `?` is optional.<br>
+        A character or word followed by `\i` is case insensitive.<br>
+        Anything followed by a `*` can happen 0 or more times.<br>
+        Only one element in square brackets can occur at a time.<br>
+      </p>
+    </div>
+  </div>
+</div>
+</body>
+<script src="interpreter.js"></script>
+</html>

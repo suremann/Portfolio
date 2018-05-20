@@ -1,0 +1,89 @@
+.terminal{
+  background: #333;
+  margin: 100px auto 0;
+  position: relative;
+  display: block;
+}
+
+.terminal .input,
+.terminal .output {
+  width: 95%;
+}
+
+.terminal .input *{
+  font-size: 115%;
+}
+
+.terminal .output {
+  word-break: break-all;
+  height: calc(100% - 45px);
+  font-size: 90%;
+  overflow: scroll;
+}
+
+.terminal .output::-webkit-scrollbar{
+  display: none;
+}
+.terminal .input {
+  height: 25px;
+}
+
+.terminal .input,
+.terminal .output {
+  padding: 5px;
+}
+
+.terminal .input input {
+  width: 90%;
+  border: none;
+  outline: none;
+}
+.terminal * {
+  color: #0f0;
+  background: transparent;
+}
+
+.help {
+  width: 95%;
+  margin: auto;
+}
+
+.help .overview{
+  width: 100%;
+  text-align: center;
+}
+
+.help .syntax ,
+.help .examples,
+.help .overview{
+  float: left;
+}
+
+@media only screen and (min-width: 900px){
+  .help .syntax{
+    width: 55%;
+  }
+  .help .examples{
+    width: 45%;
+  }
+  .terminal {
+    width: 800px;
+    height: 500px;
+  }
+}
+@media only screen and (max-width: 899px){
+  .help .syntax,
+  .help .examples{
+    width: 100%;
+  }
+  .terminal {
+    margin: 0;
+    width: 100%;
+    height: 40%;
+  }
+  .container {
+    height: 100vh;
+    width: 100%;
+  }
+}
+
