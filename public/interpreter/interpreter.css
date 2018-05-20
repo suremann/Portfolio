@@ -33,6 +33,10 @@
   padding: 5px;
 }
 
+.terminal .input label {
+  width: 15px;
+}
+
 .terminal .input input {
   width: calc(100% - 30px);
   border: none;
