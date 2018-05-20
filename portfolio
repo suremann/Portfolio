@@ -3,4 +3,7 @@
 if [ "$1" = "server:pull" ]
 then
   ssh -i E:/AWS/portfolio-ec2.pem ec2-user@ec2-18-188-200-189.us-east-2.compute.amazonaws.com 'cd /var/www/html; git pull'
+elif [ "$1" = "server:connect" ]
+then
+    ssh -i E:/AWS/portfolio-ec2.pem ec2-user@ec2-18-188-200-189.us-east-2.compute.amazonaws.com
 fi;
